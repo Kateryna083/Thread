@@ -1,25 +1,38 @@
 import bcrypt from "bcryptjs";
 import User from "../models/user.model.js";
+import { generateTokenAndSetCookie } from "../lib/utils/generateToken.js";
 
 export const signup = async (req, res) => {
   try {
     const { fullName, username, email, password } = req.body;
 
-    const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+    // console.log("Request body:", req.body);
+
+    const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+
     if (!emailRegex.test(email)) {
       return res.status(400).json({ error: "Invalid email format" });
     }
-
+    // console.log("Checking username:", username);
     const existingUser = await User.findOne({ username });
+    // console.log("Checking existingUser 1111:", existingUser);
     if (existingUser) {
       return res.status(400).json({ error: "Username is already taken" });
     }
+
+    // console.log("Checking existingUser 222:", existingUser);
 
     const existingEmail = await User.findOne({ email });
     if (existingEmail) {
       return res.status(400).json({ error: "Email is already taken" });
     }
+    // console.log("Checking existingEmail:", existingEmail);
 
+    if (password.length < 6) {
+      return res
+        .status(400)
+        .json({ error: "Password must be at least 6 characters long" });
+    }
     // const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -29,6 +42,9 @@ export const signup = async (req, res) => {
       email,
       password: hashedPassword,
     });
+
+    console.log("Saving new user:", newUser);
+
     if (newUser) {
       generateTokenAndSetCookie(newUser._id, res);
       await newUser.save();
