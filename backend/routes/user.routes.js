@@ -3,6 +3,7 @@ import express from "express";
 import { protectRoute } from "../middleware/protectRoute.js";
 import {
   followUnfollowUser,
+  getSuggestedUsers,
   getUserProfile,
 } from "../controllers/user.controller.js";
 
